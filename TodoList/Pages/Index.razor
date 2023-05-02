@@ -1,0 +1,227 @@
+﻿@page "/"
+@using ToDoList.Models
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Web
+
+
+
+<!-- This defines CSS styles for the page -->
+
+<style>
+    body {
+        background-color: dimgrey;
+        color: black;
+    }
+
+    .centered {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .todo-container {
+        background-color: white;
+        color: black;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0,0.5);
+       
+    }
+
+    .logo {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        height: 50px;
+    }
+
+    .complete {
+        text-decoration: line-through;
+    }
+
+    body {
+        background: url('/purple.png') no-repeat center center fixed;
+        background-size: cover;
+    }
+
+    .my-class {
+        color: deeppink;
+        align-items: center;
+    }
+</style>
+
+
+
+
+<!-- This creates a container for the To-Do List -->
+<section class="centered">
+
+    <section class="todo-container my-class">
+
+        <h1>To Do List</h1>
+
+        <!-- Add input fields for creating a new To-Do item -->
+
+        <div class="todo-input">
+            <input type="text" @bind="todoInput.Title" @onkeydown="AddTodoOnEnter" />
+            <button @onclick="AddTodo">Add</button>
+            <input type="date" @bind="todoInput.DueDate" />
+            <select @bind="todoInput.Category">
+                <option value="">Select a category...</option>
+                <option value="personal">Personal</option>
+                <option value="work">Work</option>
+                <option value="school">School</option>
+                <option value="other">Other</option>
+            </select>
+            <button @onclick="AddTodo">Add</button>
+            <button @onclick="ResetTodos">Reset</button>
+
+        </div>
+
+
+
+
+
+
+
+        <!-- This displays the remaining To-Do items -->
+
+
+        @if (todos.Any(todo => !todo.IsComplete))
+        {
+            <h2>Remaining Tasks:</h2>
+
+
+
+            @foreach (var todo in todos.Where(todo => !todo.IsComplete))
+            {
+                <div class="todo-item">
+                    <div class="todo-item__text" @onclick="@(() => MarkAsComplete(todo))">
+                        @todo.Title - @todo.DueDate.ToString("d", CultureInfo.InvariantCulture) - @todo.Category
+                    </div>
+                    <div class="todo-item__buttons">
+                        <button class="todo-item__edit" @onclick="@(() => EditTodo(todo))">Edit</button>
+                        <button class="todo-item__close" @onclick="@(() => RemoveTodo(todo))">&times;</button>
+                    </div>
+                </div>
+
+            }
+        }
+        else
+        {
+            <h2>All of the Tasks are Completed!</h2>
+        }
+
+        <!-- This displays the completed To-Do items -->
+
+
+        @if (todos.Any(todo => todo.IsComplete))
+        {
+            <h2>Completed Tasks:</h2>
+            @foreach (var todo in todos.Where(todo => todo.IsComplete))
+            {
+                <div class="todo-item">
+                    <div class="todo-item__text complete" @onclick="@(() => MarkAsComplete(todo))">
+                        @todo.Title - @todo.DueDate.ToString("d", CultureInfo.InvariantCulture) - @todo.Category
+                    </div>
+                    <div class="todo-item__close" @onclick="@(() => RemoveTodo(todo))">&times;</div>
+                </div>
+            }
+        }
+
+
+
+        <div>
+            Write down your errands and cross them out as you. Make multiple list for different categories. Edit as you please
+
+        </div>
+
+        <button @onclick="ResetTodos">Reset</button>
+
+
+    </section>
+
+
+
+</section>
+
+
+@code
+{
+    // used for input
+
+    public Todo todoInput { get; set; } = new Todo();
+
+    // A list objects to store all the todos
+
+    public List<Todo> todos = new List<Todo>();
+
+    // A function to add a new todo
+
+    public void AddTodo()
+    {
+        if (string.IsNullOrEmpty(todoInput.Title))
+        {
+            Console.WriteLine("Please enter a title for the To-Do item.");
+            return;
+        }
+        if (string.IsNullOrEmpty(todoInput.Category))
+        {
+            Console.WriteLine("Please choose a category.");
+            return;
+        }
+        if (string.IsNullOrEmpty(todoInput.DueDate.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture)))
+        {
+            Console.WriteLine("Enter a due date");
+            return;
+        }
+
+        if (todos.Contains(todoInput))
+        {
+            todos.Remove(todoInput);
+        }
+
+        todos.Add(todoInput);
+        todoInput = new Todo();
+    }
+
+    // A function to remove a todo from the list
+
+    public void RemoveTodo(Todo todo)
+    {
+        todos.Remove(todo);
+    }
+    // A function to mark a todo as complete or incomplete
+
+    public void MarkAsComplete(Todo todo)
+    {
+        todo.IsComplete = !todo.IsComplete;
+    }
+    // A function to add a todo when the enter key is pressed
+
+
+    public async void AddTodoOnEnter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddTodo();
+
+
+        }
+    }
+    // Use to Reset
+    public void ResetTodos()
+    {
+        todos.Clear();
+    }
+    // EDIT todo
+    public void EditTodo(Todo todo)
+    {
+        todoInput = todo;
+        todos.Remove(todo);
+    }
+
+
+}
+
